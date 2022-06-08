@@ -3,9 +3,11 @@ package com.overmindtest.overmindtest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,7 +29,6 @@ public class CrawlerIMDbService {
 	private List<CrawlerDTO> resultados = Collections.emptyList();
 	private List<String> frontiers;
 
-
 	public CrawlerIMDbService() {
 		links = new HashSet<>();
 		frontiers = new ArrayList<>();
@@ -38,12 +39,12 @@ public class CrawlerIMDbService {
 	}
 
 	public List<CrawlerDTO> crawl(int level, int position) throws CrawlerException {
-		 if(position>100) {
-			 throw new CrawlerException("Quantidade máxima é 100 posições");
-		 }
+		if (position > 100) {
+			throw new CrawlerException("Quantidade máxima é 100 posições");
+		}
 		addFrontier("https://www.imdb.com/chart/bottom");
 		frontiers.forEach(url -> crawlerPageLinks(url, level));
-		
+
 		return crawlerElements(position);
 	}
 
@@ -83,6 +84,8 @@ public class CrawlerIMDbService {
 					resultados.add(CrawlerDTO.builder().position(Integer.valueOf(position)).title(title)
 							.rating(Double.valueOf(rating)).director(director).casting(actorList).comment(comment)
 							.build());
+					resultados = resultados.stream().sorted(Comparator.comparingInt(CrawlerDTO::getPosition).reversed())
+							.collect(Collectors.toList());
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
